@@ -1,0 +1,15 @@
+{
+  "main": "lib/index.js",
+  "packageManager": "yarn@4.6.0",
+  "license": "JAM",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "jsdom": "^26.0.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^4"
+  }
+}
