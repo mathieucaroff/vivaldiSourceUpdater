@@ -4,11 +4,9 @@
     "esModuleInterop": true,
     "importHelpers": true,
     "module": "commonjs",
-    "outDir": "lib",
+    "outDir": "dist",
     "rootDir": "src",
     "target": "es2019"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

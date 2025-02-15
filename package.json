@@ -6,9 +6,13 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "jsdom": "^26.0.0"
+    "axios": "^1.7.9",
+    "jsdom": "^26.0.0",
+    "ssh2": "^1.16.0"
   },
   "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/ssh2": "^1.15.4",
     "prettier": "^3.4.2",
     "typescript": "^4"
   }
