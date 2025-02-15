@@ -8,6 +8,9 @@ package-lock.json
 dist/
 
 .*
+
+!.github/
+
 !.editorconfig
 !.gitignore
 !.prettierrc*
