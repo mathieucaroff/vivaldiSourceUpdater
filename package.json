@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Automatically updates Vivaldi browser source code in GitHub repository",
   "main": "dist/run.js",
+  "packageManager": "yarn@4.6.0",
   "scripts": {
     "build": "tsc",
     "start": "node dist/run.js",
@@ -17,6 +18,8 @@
     "simple-git": "^3.22.0"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/dotenv": "^8.2.3",
     "@types/node": "^20.11.16",
     "@types/nodemailer": "^6.4.14",
     "typescript": "^5.3.3"
