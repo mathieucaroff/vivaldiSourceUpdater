@@ -1,6 +1,13 @@
-import axios from "axios"
+import { exec } from "child_process"
+import path from "path"
+import { promisify } from "util"
+import { config } from "./config"
 import { createInstance, deleteInstance } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
+import { GitManager } from "./utils/git"
+import { getSourceArchives } from "./utils/sourceParser"
+
+const execAsync = promisify(exec)
 
 async function checkVivaldiSource() {
   try {
@@ -9,10 +16,11 @@ async function checkVivaldiSource() {
       "Starting daily check for new Vivaldi source code",
     )
 
-    // Scrape vivaldi.com/source for new archives
-    const response = await axios.get("https://vivaldi.com/source/")
-    // TODO: Parse the page to find source archives
-    const newArchives: string[] = [] // Add logic to find new archives
+    // Get list of source archives
+    const archives = await getSourceArchives()
+
+    // TODO: Compare with existing versions in repository
+    const newArchives = archives // For now, process all archives
 
     if (newArchives.length > 0) {
       await sendNotification(
@@ -27,12 +35,41 @@ async function checkVivaldiSource() {
         `Created instance ${instance.id} for processing new source`,
       )
 
-      // TODO: Add logic to:
-      // 1. SSH into instance
-      // 2. Download and extract archives
-      // 3. Clone repository
-      // 4. Create commits and tags
-      // 5. Push changes
+      // Wait for instance to be ready
+      await new Promise((resolve) => setTimeout(resolve, 60000))
+
+      // Process each archive
+      for (const archive of newArchives) {
+        const workDir = `/tmp/vivaldi-${archive.version}`
+
+        // SSH commands to process archive
+        const commands = [
+          `mkdir -p ${workDir}`,
+          `cd ${workDir}`,
+          `wget ${archive.url}`,
+          `tar xf *.tar.gz`,
+          // Setup git
+          `git config --global user.email "bot@example.com"`,
+          `git config --global user.name "Vivaldi Source Bot"`,
+        ]
+
+        // Execute commands on remote instance
+        for (const cmd of commands) {
+          await execAsync(`ssh root@${instance.networks.v4[0].ip_addr} '${cmd}'`)
+        }
+
+        // Setup git manager
+        const git = new GitManager(workDir)
+
+        // Clone repository
+        await git.clone(`https://github.com/${config.github.repository}.git`)
+
+        // Create commit and tag for new version
+        await git.createVersionCommit(archive.version, path.join(workDir, "vivaldi-source"))
+
+        // Push changes
+        await git.push()
+      }
 
       // Delete instance
       await deleteInstance(instance.id)
