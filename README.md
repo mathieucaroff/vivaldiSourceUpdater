@@ -1,26 +1,58 @@
 # vivaldiSourceUpdater
 
-This repository contains the scripts and automation configuration files to update the Vivaldi source code automatically in the https://github.com/ric2b/Vivaldi-browser repostory.
+This repository contains scripts and automation configuration to automatically update the Vivaldi browser source code in the [Vivaldi-browser repository](https://github.com/ric2b/Vivaldi-browser).
 
 ## How it works
 
 ### Daily source check
 
-Every day, the script checks if there are any new source archives on the https://vivaldi.com/source/ page, compared to ric2b's repository.
+Every day, the script checks for new source archives on [vivaldi.com/source](https://vivaldi.com/source/) that aren't yet in ric2b's repository.
 
-If there are new source archives, the script allocates a high-performance cloud server.
+If new archives are found, the script:
 
-On the sever, the archives will be downloaded and extracted. The last commit of the github repository will be shallow-cloned and each archive will be added as a commit, and a tag will be created. Finally the changes will be pushed to the GitHub repository and the server will requests its deletion through the GitHub API.
+1. Allocates a high-performance cloud server
+2. Downloads and extracts the archives
+3. Shallow-clones the latest commit from the GitHub repository
+4. Adds each archive as a commit and creates tags
+5. Pushes changes to GitHub
+6. Requests its own deletion through the GitHub API
 
 ### Daily security instance deletion
 
-Every day, one hour before the time of the daily source check, a script checks for any instance that are running and deletes them. This is a security measure to prevent any instance from running for too long and costing too much money. The schedule is chosen so that the instance still get a lot of time before being force-deleted.
+A security script runs daily, one hour before the source check, to delete any running instances. This prevents instances from running too long and accumulating costs while still allowing enough time for normal operations.
 
-## Emails
+## Email Notifications
 
-The following events are reported by email:
+The system sends email notifications for:
 
-- The daily source check starts
-- New source archive detected
-- High-performane instance deleted
-- Deletion of the high-performance instance by the daily security instance deletion script
+- Daily source check initiation
+- New source archive detection
+- High-performance instance creation
+- Instance deletion (both normal and security-triggered)
+
+## Environment variables
+
+The scripts use the following environment variables:
+
+```
+# Digital Ocean API token
+DO_API_TOKEN
+# Digital Ocean SSH public key ID
+DO_SSH_KEY_ID
+# SSH private key corresponding to the Digital Ocean SSH public key
+SSH_PRIVATE_KEY
+
+# Email notification configuration
+# SMTP server
+SMTP_SERVER
+# SMTP port
+SMTP_PORT
+# SMTP username
+SMTP_USERNAME
+# SMTP password
+SMTP_PASSWORD
+```
+
+## License
+
+JAM License
