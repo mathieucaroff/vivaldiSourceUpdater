@@ -1,4 +1,4 @@
-name: Daily Source Check
+name: Resource Deletion Check
 
 on:
   schedule:
@@ -18,19 +18,20 @@ jobs:
           node-version: "20"
           cache: "npm"
 
+      # Install dependencies
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --immutable --immutable-cache --check-cache
 
-      - name: Build
-        run: npm run build
+      # Compile TypeScript (assuming your TS config outputs to dist/)
+      - name: Build TypeScript
+        run: yarn build
 
-      - name: Run source check
+      # Run your TypeScript script (compiled JavaScript)
+      - name: Run resource deletion check
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
-          DO_SSH_KEY_ID: ${{ secrets.DO_SSH_KEY_ID }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        run: npm start
+        run: node dist/run.js --resource-deletion-check
