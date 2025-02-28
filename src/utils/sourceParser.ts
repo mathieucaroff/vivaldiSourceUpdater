@@ -1,4 +1,3 @@
-import axios from "axios"
 import { load } from "cheerio"
 
 interface SourceArchive {
@@ -8,8 +7,9 @@ interface SourceArchive {
 }
 
 export async function getSourceArchives(): Promise<SourceArchive[]> {
-  const response = await axios.get("https://vivaldi.com/source/")
-  const $ = load(response.data)
+  const response = await fetch("https://vivaldi.com/source/")
+  const html = await response.text()
+  const $ = load(html)
   const archives: SourceArchive[] = []
 
   // The archives are typically in a table with links and dates
