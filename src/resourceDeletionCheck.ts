@@ -1,7 +1,7 @@
 import { deleteInstance, listInstances } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
 
-async function securityCheck() {
+async function resourceDeletionCheck() {
   try {
     const instances = await listInstances()
 
@@ -9,7 +9,7 @@ async function securityCheck() {
       await deleteInstance(instance.id)
       await sendNotification(
         "Security Check - Instance Deleted",
-        `Deleted instance ${instance.id} during security check`,
+        `Deleted instance ${instance.id} during security check`
       )
     }
   } catch (error) {
@@ -17,4 +17,4 @@ async function securityCheck() {
   }
 }
 
-securityCheck()
+resourceDeletionCheck()

@@ -14,6 +14,13 @@ export const config = {
     password: process.env.SMTP_PASSWORD!,
   },
   github: {
-    repository: "ric2b/Vivaldi-browser",
+    vivaldiRepository: "ric2b/Vivaldi-browser",
+    updaterRepository: "mathieucaroff/vivaldiSourceUpdater",
+  },
+  git: {
+    user: {
+      name: "Mathieu CAROFF",
+      email: process.env.GIT_USER_EMAIL,
+    },
   },
 }

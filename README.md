@@ -6,16 +6,16 @@ This repository contains scripts and automation configuration to automatically u
 
 ### Daily source check
 
-Every day, the script checks for new source archives on [vivaldi.com/source](https://vivaldi.com/source/) that aren't yet in ric2b's repository.
+Every day, GitHub runs a script which checks for new source archives on [vivaldi.com/source](https://vivaldi.com/source/) that aren't yet in ric2b's repository.
 
 If new archives are found, the script:
 
-1. Allocates a high-performance cloud server
+1. Allocates a high-performance cloud server at Digital Ocean
 2. Downloads and extracts the archives
 3. Shallow-clones the latest commit from the GitHub repository
 4. Adds each archive as a commit and creates tags
 5. Pushes changes to GitHub
-6. Requests its own deletion through the GitHub API
+6. Requests its own deletion through the Digital Ocean API
 
 ### Daily security instance deletion
 
@@ -26,8 +26,8 @@ A security script runs daily, one hour before the source check, to delete any ru
 The system sends email notifications for:
 
 - Daily source check initiation
-- New source archive detection
-- High-performance instance creation
+- New source archive detection and high-performance instance creation
+- Instance activation
 - Instance deletion (both normal and security-triggered)
 
 ## Environment variables
@@ -51,6 +51,9 @@ SMTP_PORT
 SMTP_USERNAME
 # SMTP password
 SMTP_PASSWORD
+
+# Email to configure in git before creating commits
+GIT_USER_EMAIL
 ```
 
 ## License

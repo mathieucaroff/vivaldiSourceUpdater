@@ -34,9 +34,53 @@ export class GitManager {
     await this.git.pushTags()
   }
 
-  // Move the .git folder from the `from` folder to the `to` folder, as
-  // well as the README.md file. Also, recreate the .git instance using the
-  // updated path.
-  //
-  // async moveGitAndReadmeMd(from: string, to: string): Promise<void> {}
+  /* Move the .git folder from the `from` folder to the `to` folder, as
+   * well as the README.md file. Also, recreate the .git instance using the
+   * updated path.
+   */
+  async moveGitAndReadmeMd(from: string, to: string): Promise<void> {
+    // Create destination directory if it doesn't exist
+    if (!fs.existsSync(to)) {
+      fs.mkdirSync(to, { recursive: true })
+    }
+
+    // Move .git folder
+    const gitFolderSource = path.join(from, ".git")
+    const gitFolderDest = path.join(to, ".git")
+
+    // If source .git folder doesn't exist, exit
+    if (!fs.existsSync(gitFolderSource)) {
+      console.error("No .git folder found in the source directory")
+      return
+    }
+
+    // If destination .git already exists, remove it
+    if (fs.existsSync(gitFolderDest)) {
+      fs.rmSync(gitFolderDest, { recursive: true, force: true })
+    }
+
+    // Move the .git folder
+    fs.renameSync(gitFolderSource, gitFolderDest)
+
+    // Move README.md file
+    const readmeSource = path.join(from, "README.md")
+    const readmeDest = path.join(to, "README.md")
+
+    if (!fs.existsSync(readmeSource)) {
+      console.error("No README.md file found in the source directory")
+      return
+    }
+
+    // If destination README.md already exists, remove it
+    if (fs.existsSync(readmeDest)) {
+      fs.unlinkSync(readmeDest)
+    }
+
+    // Move the README.md file
+    fs.renameSync(readmeSource, readmeDest)
+
+    // Update the repoPath and recreate the git instance
+    this.repoPath = to
+    this.git = simpleGit(this.repoPath)
+  }
 }

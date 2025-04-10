@@ -18,7 +18,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
+
+      # Enable Corepack and Yarn-berry
+      - name: Enable Corepack
+        run: corepack enable
 
       # Install dependencies
       - name: Install dependencies
@@ -38,4 +42,4 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        run: node dist/run.js --vivaldi-source-publication-check
+        run: node dist/sourcePublicationCheck.js

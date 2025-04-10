@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/run.js",
     "check-source": "node dist/checkSource.js",
-    "security-check": "node dist/securityCheck.js"
+    "security-check": "node dist/resourceDeletionCheck.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
