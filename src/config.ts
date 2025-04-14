@@ -16,6 +16,7 @@ export const config = {
   github: {
     vivaldiRepository: "ric2b/Vivaldi-browser",
     updaterRepository: "mathieucaroff/vivaldiSourceUpdater",
+    token: process.env.GITHUB_TOKEN,
   },
   git: {
     user: {

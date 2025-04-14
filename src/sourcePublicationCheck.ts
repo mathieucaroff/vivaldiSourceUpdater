@@ -9,6 +9,7 @@ import {
 } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
 import { getSourceArchives } from "./utils/sourceParser"
+import { getLastRepositoryVersion } from "./utils/github"
 
 const execAsync = promisify(exec)
 
@@ -29,7 +30,8 @@ async function sourcePublicationCheck() {
     // Get list of source archives
     const archives = await getSourceArchives()
 
-    // TODO: Compare with existing versions in repository
+    const lastRepositoryVersion = await getLastRepositoryVersion()
+    // TODO: Compare archive versions with lastRepositoryVersion, filter out archivse of smaller or equal version
     const newArchives = archives // For now, process all archives
 
     if (newArchives.length > 0) {
@@ -41,11 +43,27 @@ async function sourcePublicationCheck() {
       )
 
       // Wait for instance to be ready
-      await awaitInstanceReady(instance, 10_000, 900)
+      try {
+        await awaitInstanceReady(instance, 2_000, 300) // check every 2 seconds, for 10 minutes
+      } catch (e) {
+        await sendNotification(
+          "FAILED Instance Creation",
+          `Instance ${instance.id} was not ready before the timeout was reached.`
+        )
+        throw e
+      }
 
       setupAndStartInstance(instance)
 
-      await awaitInstanceDeletion(instance.id, 10_000, 900)
+      try {
+        await awaitInstanceDeletion(instance.id, 10_000, 900) // check every 10 seconds for 2h30
+      } catch (e) {
+        await sendNotification(
+          "FAILED Instance Processing",
+          `Instance ${instance.id} reached timeout before it finished processing the data (its deletion was not detected).`
+        )
+        throw e
+      }
 
       await sendNotification(
         "Instance Deleted",

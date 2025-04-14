@@ -52,7 +52,11 @@ SMTP_USERNAME
 # SMTP password
 SMTP_PASSWORD
 
-# Email to configure in git before creating commits
+# Github Token to get higher rate limits for checking the
+# last vivaldi source code uploaded version from github
+GITHUB_TOKEN
+
+# Email of git commits' author and committer
 GIT_USER_EMAIL
 ```
 
