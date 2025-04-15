@@ -10,6 +10,7 @@ import {
 import { sendNotification } from "./utils/email"
 import { getSourceArchives } from "./utils/sourceParser"
 import { getLastRepositoryVersion } from "./utils/github"
+import { config } from "./config"
 
 const execAsync = promisify(exec)
 
@@ -21,18 +22,18 @@ async function sourcePublicationCheck() {
 
   try {
     await sendNotification(
-      "Vivaldi Source Check Started",
+      "Vivaldi Source Publication Check Started",
       "Starting daily check for new Vivaldi source code"
     )
 
-    // Get list of versions from the repository commits via the GitHub GraphQL API
+    // Get the last version from the last repository commit via the GitHub GraphQL API
+    const lastRepositoryVersion = await getLastRepositoryVersion()
 
     // Get list of source archives
     const archives = await getSourceArchives()
 
-    const lastRepositoryVersion = await getLastRepositoryVersion()
     // TODO: Compare archive versions with lastRepositoryVersion, filter out archivse of smaller or equal version
-    const newArchives = archives // For now, process all archives
+    const newArchives = archives.slice(-2) // For now, process the two most recent archives
 
     if (newArchives.length > 0) {
       // Create high-performance instance
@@ -93,6 +94,33 @@ async function sourcePublicationCheck() {
  * Then clone the updater repository, install its dependencies using yarn
  * build the code with TypeScript and run it.
  */
-function setupAndStartInstance(dropletInfo: DropletInfo) {}
+async function setupAndStartInstance(dropletInfo: DropletInfo) {
+  const { ipv4 } = dropletInfo;
+
+  // Helper function to execute SSH commands
+  async function runSSH(command: string) {
+    try {
+      await execAsync(`ssh -o StrictHostKeyChecking=no root@${ipv4} "${command}"`);
+    } catch (error) {
+      throw new Error(`SSH command failed: ${command}, ${(error as any).message}`);
+    }
+  }
+
+  try {
+    // Install dependencies on the instance
+    await runSSH("apt-get update && apt-get install -y nodejs npm git");
+
+    // Install Yarn (Berry version)
+    await runSSH("npm install -g corepack && corepack enable && corepack prepare yarn@stable --activate");
+
+    // Clone the updater repository
+    await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`);
+
+    // Navigate to the repository, install dependencies, build, and run the updater
+    await runSSH("cd updater && yarn install && yarn build && yarn source-update");
+  } catch (error) {
+    throw new Error(`Failed to set up and start instance: ${(error as any).message}`);
+  }
+}
 
 sourcePublicationCheck()

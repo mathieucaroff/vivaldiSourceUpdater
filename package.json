@@ -6,9 +6,9 @@
   "packageManager": "yarn@4.6.0",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/run.js",
-    "check-source": "node dist/checkSource.js",
-    "security-check": "node dist/resourceDeletionCheck.js"
+    "resource-deletion-check": "node dist/resourceDeletionCheck.js",
+    "source-publication-check": "node dist/sourcePublicationCheck.js",
+    "source-update": "node dist/sourceUpdate.js"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",

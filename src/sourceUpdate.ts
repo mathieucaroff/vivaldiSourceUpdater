@@ -6,6 +6,7 @@ import { deleteInstance } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
 import { GitManager } from "./utils/git"
 import { getSourceArchives } from "./utils/sourceParser"
+import { getLastRepositoryVersion } from "./utils/github"
 
 const execAsync = promisify(exec)
 
@@ -15,14 +16,15 @@ async function sourceUpdate() {
       "Vivaldi Source Update Started",
       "Starting update of the repository using the website source code"
     )
-
-    // Get list of versions from the repository commits via the GitHub GraphQL API
+    
+    // Get the last version from the last repository commit via the GitHub GraphQL API
+    const lastRepositoryVersion = await getLastRepositoryVersion()
 
     // Get list of source archives
     const archives = await getSourceArchives()
 
-    // TODO: Compare with existing versions in repository
-    const newArchives = archives // For now, process all archives
+    // TODO: Compare archive versions with lastRepositoryVersion, filter out archivse of smaller or equal version
+    const newArchives = archives.slice(-2) // For now, process the two most recent archives
 
     // Process each archive
     for (const archive of newArchives) {
