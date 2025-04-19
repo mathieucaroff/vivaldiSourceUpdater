@@ -4,6 +4,7 @@ dotenv.config()
 export const config = {
   digitalOcean: {
     apiToken: process.env.DO_API_TOKEN!,
+    // ID or fingerprint
     sshKeyId: process.env.DO_SSH_KEY_ID!,
     sshPrivateKey: process.env.SSH_PRIVATE_KEY!,
   },
@@ -25,3 +26,18 @@ export const config = {
     },
   },
 }
+
+export const envString = [
+  "DO_API_TOKEN",
+  "DO_SSH_KEY_ID",
+  "SSH_PRIVATE_KEY",
+  "SMTP_SERVER",
+  "SMTP_PORT",
+  "SMTP_USERNAME",
+  "SMTP_PASSWORD",
+  "GITHUB_TOKEN",
+  "GIT_USER_EMAIL",
+].map((name) => {
+  const value = process.env[name]
+  return `${name}='${value}'`
+}).join(" ")

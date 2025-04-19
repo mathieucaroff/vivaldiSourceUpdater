@@ -8,6 +8,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
+    container: ubuntu # Added to avoid ECONNREFUSED error, see https://stackoverflow.com/a/74341376
 
     steps:
       # Checkout repository code

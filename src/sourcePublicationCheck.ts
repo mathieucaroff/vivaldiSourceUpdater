@@ -5,12 +5,12 @@ import {
   awaitInstanceReady,
   createInstance,
   deleteInstance,
-  DropletInfo,
+  getInstanceIp,
 } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
 import { getSourceArchives } from "./utils/sourceParser"
 import { getLastRepositoryVersion } from "./utils/github"
-import { config } from "./config"
+import { config, envString } from "./config"
 
 const execAsync = promisify(exec)
 
@@ -18,7 +18,7 @@ const execAsync = promisify(exec)
  *
  */
 async function sourcePublicationCheck() {
-  let instance: DropletInfo = { id: "", ipv4: "" }
+  let instanceId = 0
 
   try {
     await sendNotification(
@@ -37,49 +37,57 @@ async function sourcePublicationCheck() {
 
     if (newArchives.length > 0) {
       // Create high-performance instance
-      instance = await createInstance()
+      instanceId = await createInstance()
       await sendNotification(
         "New Vivaldi Source found, instance created",
-        `Found ${newArchives.length} new source archive(s). Created instance ${instance.id} to process them.`
+        `Found ${newArchives.length} new source archive(s). Created instance ${instanceId} to process them.`
       )
 
       // Wait for instance to be ready
       try {
-        await awaitInstanceReady(instance, 2_000, 300) // check every 2 seconds, for 10 minutes
+        await awaitInstanceReady(instanceId, 2_000, 300) // check every 2 seconds, for 10 minutes
       } catch (e) {
         await sendNotification(
           "FAILED Instance Creation",
-          `Instance ${instance.id} was not ready before the timeout was reached.`
+          `Instance ${instanceId} was not ready before the timeout was reached.`
         )
         throw e
       }
 
-      setupAndStartInstance(instance)
+      try {
+        setupAndStartInstance(await getInstanceIp(instanceId))
+      } catch (e) {
+        await sendNotification(
+          "FAILED Instance Setup",
+          `Instance ${instanceId} set up and start failed with message: ${(e as any).message}`
+        )
+        throw e
+      }
 
       try {
-        await awaitInstanceDeletion(instance.id, 10_000, 900) // check every 10 seconds for 2h30
+        await awaitInstanceDeletion(instanceId, 10_000, 900) // check every 10 seconds for 2h30
       } catch (e) {
         await sendNotification(
           "FAILED Instance Processing",
-          `Instance ${instance.id} reached timeout before it finished processing the data (its deletion was not detected).`
+          `Instance ${instanceId} reached timeout before it finished processing the data (its deletion was not detected).`
         )
         throw e
       }
 
       await sendNotification(
         "Instance Deleted",
-        `Instance ${instance.id} was correctly deleted after processing`
+        `Instance ${instanceId} was correctly deleted after processing`
       )
     }
   } catch (error) {
     await sendNotification("Vivaldi Source Check Error", `Error during source check: ${error}`)
-    if (instance.id) {
+    if (instanceId) {
       try {
-        deleteInstance(instance.id)
+        deleteInstance(instanceId)
       } catch (secondError) {
         await sendNotification(
           "Vivaldi Source Updater WARNING",
-          `Error-handling deletion of instance ${instance.id} produced an error: ${secondError}. You should check whether the instances has been deleted in the Digital Ocean webapp.`
+          `Error-handling deletion of instance ${instanceId} produced an error: ${secondError}. You should check whether the instances has been deleted in the Digital Ocean webapp.`
         )
       }
     }
@@ -94,33 +102,27 @@ async function sourcePublicationCheck() {
  * Then clone the updater repository, install its dependencies using yarn
  * build the code with TypeScript and run it.
  */
-async function setupAndStartInstance(dropletInfo: DropletInfo) {
-  const { ipv4 } = dropletInfo;
-
+async function setupAndStartInstance(dropletIp: string) {
   // Helper function to execute SSH commands
   async function runSSH(command: string) {
     try {
-      await execAsync(`ssh -o StrictHostKeyChecking=no root@${ipv4} "${command}"`);
+      await execAsync(`ssh -o StrictHostKeyChecking=no root@${dropletIp} "${command}"`);
     } catch (error) {
       throw new Error(`SSH command failed: ${command}, ${(error as any).message}`);
     }
   }
 
-  try {
-    // Install dependencies on the instance
-    await runSSH("apt-get update && apt-get install -y nodejs npm git");
+  // Install dependencies on the instance
+  await runSSH("apt-get update && apt-get install -y nodejs npm git");
 
-    // Install Yarn (Berry version)
-    await runSSH("npm install -g corepack && corepack enable && corepack prepare yarn@stable --activate");
+  // Install Yarn (Berry version)
+  await runSSH("npm install -g corepack && corepack enable && corepack prepare yarn@stable --activate");
 
-    // Clone the updater repository
-    await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`);
+  // Clone the updater repository
+  await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`);
 
-    // Navigate to the repository, install dependencies, build, and run the updater
-    await runSSH("cd updater && yarn install && yarn build && yarn source-update");
-  } catch (error) {
-    throw new Error(`Failed to set up and start instance: ${(error as any).message}`);
-  }
+  // Navigate to the repository, install dependencies, build, and run the updater
+  await runSSH(`cd updater && yarn install && yarn build && env ${envString} yarn source-update`);
 }
 
 sourcePublicationCheck()
