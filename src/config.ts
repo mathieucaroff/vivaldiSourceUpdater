@@ -17,7 +17,7 @@ export const config = {
   github: {
     vivaldiRepository: "ric2b/Vivaldi-browser",
     updaterRepository: "mathieucaroff/vivaldiSourceUpdater",
-    token: process.env.GITHUB_TOKEN,
+    token: process.env.GH_TOKEN!,
   },
   git: {
     user: {
@@ -35,7 +35,7 @@ export const envString = [
   "SMTP_PORT",
   "SMTP_USERNAME",
   "SMTP_PASSWORD",
-  "GITHUB_TOKEN",
+  "GH_TOKEN",
   "GIT_USER_EMAIL",
 ].map((name) => {
   const value = process.env[name]

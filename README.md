@@ -54,7 +54,7 @@ SMTP_PASSWORD
 
 # Github Token to get higher rate limits for checking the
 # last vivaldi source code uploaded version from github
-GITHUB_TOKEN
+GH_TOKEN
 
 # Email of git commits' author and committer
 GIT_USER_EMAIL
