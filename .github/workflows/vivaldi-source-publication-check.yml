@@ -3,9 +3,9 @@ name: Vivaldi Source Publication Check
 on:
   schedule:
     # Runs at 03:00 UTC every day
-    # - cron: "0 3 * * *"
+    - cron: "0 3 * * *"
     # Runs every hour at minute 5
-    - cron: "5 * * * *"
+    # - cron: "5 * * * *"
 
 jobs:
   run-script:
