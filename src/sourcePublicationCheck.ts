@@ -55,7 +55,7 @@ async function sourcePublicationCheck() {
       }
 
       try {
-        setupAndStartInstance(await getInstanceIp(instanceId))
+        setupAndStartInstance(instanceId)
       } catch (e) {
         await sendNotification(
           "FAILED Instance Setup",
@@ -102,7 +102,10 @@ async function sourcePublicationCheck() {
  * Then clone the updater repository, install its dependencies using yarn
  * build the code with TypeScript and run it.
  */
-async function setupAndStartInstance(dropletIp: string) {
+async function setupAndStartInstance(dropletId: number) {
+  // Get the IP address of the instance
+  const dropletIp = await getInstanceIp(dropletId)
+
   // Helper function to execute SSH commands
   async function runSSH(command: string) {
     try {
@@ -122,7 +125,7 @@ async function setupAndStartInstance(dropletIp: string) {
   await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`);
 
   // Navigate to the repository, install dependencies, build, and run the updater
-  await runSSH(`cd updater && yarn install && yarn build && env ${envString} yarn source-update`);
+  await runSSH(`cd updater && yarn install && yarn build && env ${envString} node dist/sourceUpdate.js ${dropletId}`);
 }
 
 sourcePublicationCheck()

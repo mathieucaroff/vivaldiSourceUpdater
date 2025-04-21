@@ -43,7 +43,10 @@ async function sourceUpdate() {
       await git.push()
     }
 
-    const thisInstanceId = process.argv[2]
+    const thisInstanceId = Number(process.argv[2])
+    if (Number.isNaN(thisInstanceId)) {
+      throw new Error("Instance ID is not a number")
+    }
 
     // Delete this instance
     await deleteInstance(thisInstanceId)
