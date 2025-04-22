@@ -18,7 +18,7 @@ export async function getSourceArchives(): Promise<SourceArchive[]> {
     if (cells.length >= 2) {
       const link = $(cells[0]).find("a")
       const url = link.attr("href")
-      const version = link.text().trim()
+      const version = url?.match(/vivaldi-source_(\d+\.\d+\.\d+)\.tar\.xz/)?.[1] ?? ""
       const dateText = $(cells[1]).text().trim()
 
       if (url && version && dateText) {
