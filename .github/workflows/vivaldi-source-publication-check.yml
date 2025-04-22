@@ -2,8 +2,8 @@ name: Vivaldi Source Publication Check
 
 on:
   schedule:
-    # Runs at 03:00 UTC every day
-    - cron: "0 3 * * *"
+    # Runs at 01:00 UTC (03:00 Paris time) every day
+    - cron: "0 1 * * *"
   workflow_dispatch: # Allow manual triggers
 
 jobs:
