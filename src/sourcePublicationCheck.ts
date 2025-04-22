@@ -18,7 +18,7 @@ const execAsync = promisify(exec)
  *
  */
 async function sourcePublicationCheck() {
-  let instanceId = 0
+  let dropletId = 0
 
   try {
     await sendNotification(
@@ -37,57 +37,57 @@ async function sourcePublicationCheck() {
 
     if (newArchives.length > 0) {
       // Create high-performance instance
-      instanceId = await createInstance()
+      dropletId = await createInstance()
       await sendNotification(
         "New Vivaldi Source found, instance created",
-        `Found ${newArchives.length} new source archive(s). Created instance ${instanceId} to process them.`
+        `Found ${newArchives.length} new source archive(s). Created instance ${dropletId} to process them.`
       )
 
       // Wait for instance to be ready
       try {
-        await awaitInstanceReady(instanceId, 2_000, 300) // check every 2 seconds, for 10 minutes
+        await awaitInstanceReady(dropletId, 2_000, 300) // check every 2 seconds, for 10 minutes
       } catch (e) {
         await sendNotification(
           "FAILED Instance Creation",
-          `Instance ${instanceId} was not ready before the timeout was reached.`
+          `Instance ${dropletId} was not ready before the timeout was reached.`
         )
         throw e
       }
 
       try {
-        setupAndStartInstance(instanceId)
+        setupAndStartInstance(dropletId)
       } catch (e) {
         await sendNotification(
           "FAILED Instance Setup",
-          `Instance ${instanceId} set up and start failed with message: ${(e as any).message}`
+          `Instance ${dropletId} set up and start failed with message: ${(e as any).message}`
         )
         throw e
       }
 
       try {
-        await awaitInstanceDeletion(instanceId, 10_000, 900) // check every 10 seconds for 2h30
+        await awaitInstanceDeletion(dropletId, 10_000, 900) // check every 10 seconds for 2h30
       } catch (e) {
         await sendNotification(
           "FAILED Instance Processing",
-          `Instance ${instanceId} reached timeout before it finished processing the data (its deletion was not detected).`
+          `Instance ${dropletId} reached timeout before it finished processing the data (its deletion was not detected).`
         )
         throw e
       }
 
       await sendNotification(
         "Instance Deleted",
-        `Instance ${instanceId} was correctly deleted after processing`
+        `Instance ${dropletId} was correctly deleted after processing`
       )
     }
   } catch (error) {
     await sendNotification("Vivaldi Source Check Error", `Error during source check: ${error}`)
-    if (instanceId) {
+    if (dropletId) {
       try {
-        deleteInstance(instanceId)
+        deleteInstance(dropletId)
       } catch (secondError) {
         await sendNotification(
           "Vivaldi Source Updater WARNING",
-          `Error-handling deletion of instance ${instanceId} produced an error: ${secondError}. You should check whether the instances has been deleted in the Digital Ocean webapp.`
+          `Error-handling deletion of instance ${dropletId} produced an error: ${secondError}. You should check whether the instances has been deleted in the Digital Ocean webapp.`
         )
       }
     }
@@ -104,12 +104,14 @@ async function sourcePublicationCheck() {
  */
 async function setupAndStartInstance(dropletId: number) {
   // Get the IP address of the instance
-  const dropletIp = await getInstanceIp(dropletId)
+  const instanceIp = await getInstanceIp(dropletId)
 
   // Helper function to execute SSH commands
   async function runSSH(command: string) {
+    console.log(`Running command via SSH: ${command}`)
+
     try {
-      await execAsync(`ssh -o StrictHostKeyChecking=no root@${dropletIp} "${command}"`);
+      await execAsync(`ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${instanceIp} "${command}"`);
     } catch (error) {
       throw new Error(`SSH command failed: ${command}, ${(error as any).message}`);
     }
