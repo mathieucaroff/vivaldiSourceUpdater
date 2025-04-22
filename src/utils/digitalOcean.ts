@@ -1,3 +1,4 @@
+import fs from "fs"
 import { promisify } from "util"
 import { config } from "../config"
 import { exec } from "child_process"
@@ -66,6 +67,11 @@ export async function getInstanceIp(dropletId: number): Promise<string> {
   const ipv4 = droplet.networks.v4.find((network: any) => network.type === "public")
   const ipv6 = droplet.networks.v6.find((network: any) => network.type === "public")
   return ipv4?.ip_address ?? ipv6?.ip_address ?? ""
+}
+
+export function setupSSHKey() {
+  const { sshPrivateKey } = config.digitalOcean
+  fs.writeFileSync(`${process.env.HOME}/.ssh/id_rsa`, sshPrivateKey, { mode: 0o600 })
 }
 
 /**

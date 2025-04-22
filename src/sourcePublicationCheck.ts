@@ -83,7 +83,11 @@ async function sourcePublicationCheck() {
     await sendNotification("Vivaldi Source Check Error", `Error during source check: ${error}`)
     if (dropletId) {
       try {
-        deleteInstance(dropletId)
+        await deleteInstance(dropletId)
+        await sendNotification(
+          "Instance Deletion",
+          `Instance ${dropletId} was correctly deleted after an error occurred.`
+        )
       } catch (secondError) {
         await sendNotification(
           "Vivaldi Source Updater WARNING",
