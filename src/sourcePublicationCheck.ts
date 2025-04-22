@@ -8,7 +8,7 @@ import {
   getInstanceIp,
 } from "./utils/digitalOcean"
 import { sendNotification } from "./utils/email"
-import { getSourceArchives } from "./utils/sourceParser"
+import { getNewSourceArchives, getSourceArchives } from "./utils/sourceParser"
 import { getLastRepositoryVersion } from "./utils/github"
 import { config, envString } from "./config"
 
@@ -25,15 +25,10 @@ async function sourcePublicationCheck() {
       "Vivaldi Source Publication Check Started",
       "Starting daily check for new Vivaldi source code"
     )
-
     // Get the last version from the last repository commit via the GitHub GraphQL API
     const lastRepositoryVersion = await getLastRepositoryVersion()
 
-    // Get list of source archives
-    const archives = await getSourceArchives()
-
-    // TODO: Compare archive versions with lastRepositoryVersion, filter out archivse of smaller or equal version
-    const newArchives = archives.slice(-2) // For now, process the two most recent archives
+    const newArchives = await getNewSourceArchives(lastRepositoryVersion)
 
     if (newArchives.length > 0) {
       // Create high-performance instance

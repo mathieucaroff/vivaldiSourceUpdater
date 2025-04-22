@@ -22,12 +22,10 @@ export const config = {
   git: {
     user: {
       name: "Mathieu CAROFF",
-      email: process.env.GIT_USER_EMAIL,
+      email: process.env.GIT_USER_EMAIL!,
     },
   },
 }
-
-console.log("Running with config:", JSON.stringify(config, null, 2))
 
 export const envString = [
   "DO_API_TOKEN",

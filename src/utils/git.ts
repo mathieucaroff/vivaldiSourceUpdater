@@ -6,9 +6,12 @@ export class GitManager {
   private git: SimpleGit
   private repoPath: string
 
-  constructor(repoPath: string) {
+  constructor(repoPath: string, userName: string, userEmail: string) {
     this.repoPath = repoPath
     this.git = simpleGit(repoPath)
+
+    this.git.addConfig("user.name", userName, false, 'global')
+    this.git.addConfig("user.email", userEmail, false, 'global')
   }
 
   async clone(url: string): Promise<void> {
@@ -18,9 +21,9 @@ export class GitManager {
     await this.git.clone(url, this.repoPath, ["--depth", "1"])
   }
 
-  async createVersionCommit(version: string, sourcePath: string): Promise<void> {
-    // Add all files from the source directory
-    await this.git.add(path.join(sourcePath, "*"))
+  async createVersionCommitAndTag(version: string): Promise<void> {
+    // Add all files from the repository directory
+    await this.git.add(this.repoPath)
 
     // Create commit with version
     await this.git.commit(`Added version ${version}`)
@@ -34,24 +37,23 @@ export class GitManager {
     await this.git.pushTags()
   }
 
-  /* Move the .git folder from the `from` folder to the `to` folder, as
-   * well as the README.md file. Also, recreate the .git instance using the
-   * updated path.
+  /** Move the .git folder from the repository folder to the `to` folder, as
+   * well as the README.md file. Also, recreate the simpleGit instance using
+   * the updated repository path.
    */
-  async moveGitAndReadmeMd(from: string, to: string): Promise<void> {
+  async moveGitAndReadmeMd(to: string): Promise<void> {
     // Create destination directory if it doesn't exist
     if (!fs.existsSync(to)) {
       fs.mkdirSync(to, { recursive: true })
     }
 
     // Move .git folder
-    const gitFolderSource = path.join(from, ".git")
+    const gitFolderSource = path.join(this.repoPath, ".git")
     const gitFolderDest = path.join(to, ".git")
 
-    // If source .git folder doesn't exist, exit
+    // If source .git folder doesn't exist, throw
     if (!fs.existsSync(gitFolderSource)) {
-      console.error("No .git folder found in the source directory")
-      return
+      throw new Error("No .git folder found in the source directory")
     }
 
     // If destination .git already exists, remove it
@@ -63,12 +65,11 @@ export class GitManager {
     fs.renameSync(gitFolderSource, gitFolderDest)
 
     // Move README.md file
-    const readmeSource = path.join(from, "README.md")
+    const readmeSource = path.join(this.repoPath, "README.md")
     const readmeDest = path.join(to, "README.md")
 
     if (!fs.existsSync(readmeSource)) {
-      console.error("No README.md file found in the source directory")
-      return
+      throw new Error("No README.md file found in the source directory")
     }
 
     // If destination README.md already exists, remove it
