@@ -27,6 +27,8 @@ export const config = {
   },
 }
 
+console.log("Running with config:", JSON.stringify(config, null, 2))
+
 export const envString = [
   "DO_API_TOKEN",
   "DO_SSH_KEY_ID",
