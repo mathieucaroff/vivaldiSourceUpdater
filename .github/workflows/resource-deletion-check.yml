@@ -34,8 +34,8 @@ jobs:
       - name: Run resource deletion check
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_SERVER: ${{ vars.SMTP_SERVER }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USERNAME: ${{ vars.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
         run: node dist/resourceDeletionCheck.js

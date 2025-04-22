@@ -38,12 +38,12 @@ jobs:
       - name: Run source check
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
-          DO_SSH_KEY_ID: ${{ secrets.DO_SSH_KEY_ID }}
+          DO_SSH_KEY_ID: ${{ vars.DO_SSH_KEY_ID }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_SERVER: ${{ vars.SMTP_SERVER }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USERNAME: ${{ vars.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GIT_USER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
+          GIT_USER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
         run: node dist/sourcePublicationCheck.js

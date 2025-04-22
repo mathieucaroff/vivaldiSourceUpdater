@@ -15,7 +15,9 @@ import { config, envString } from "./config"
 const execAsync = promisify(exec)
 
 /**
- *
+ * Check for new Vivaldi source code archives on the GitHub repository,
+ * compared to the last version of the Vivaldi-browser repository. If new
+ * archives are found, create a Digital Ocean instance to process them.
  */
 async function sourcePublicationCheck() {
   let dropletId = 0
