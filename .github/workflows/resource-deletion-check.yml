@@ -8,6 +8,7 @@ on:
 jobs:
   check-source:
     runs-on: ubuntu-latest
+    environment: myEnvironement
 
     steps:
       - uses: actions/checkout@v4
