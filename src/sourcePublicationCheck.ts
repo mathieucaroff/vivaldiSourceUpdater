@@ -7,10 +7,11 @@ import {
   deleteInstance,
   getInstanceIp,
 } from "./utils/digitalOcean"
-import { sendNotification } from "./utils/email"
+import { sendMail } from "./utils/email"
 import { getNewSourceArchives, getSourceArchives } from "./utils/sourceParser"
 import { getLastRepositoryVersion } from "./utils/github"
 import { config, envString } from "./config"
+import { retryAsync } from "./utils/retry"
 
 const execAsync = promisify(exec)
 
@@ -23,7 +24,7 @@ async function sourcePublicationCheck() {
   let dropletId = 0
 
   try {
-    await sendNotification(
+    await sendMail(
       "Vivaldi Source Publication Check Started",
       "Starting daily check for new Vivaldi source code"
     )
@@ -35,7 +36,7 @@ async function sourcePublicationCheck() {
     if (newArchives.length > 0) {
       // Create high-performance instance
       dropletId = await createInstance()
-      await sendNotification(
+      await sendMail(
         "New Vivaldi Source found, instance created",
         `Found ${newArchives.length} new source archive(s). Created instance ${dropletId} to process them.`
       )
@@ -44,7 +45,7 @@ async function sourcePublicationCheck() {
       try {
         await awaitInstanceReady(dropletId, 2_000, 300) // check every 2 seconds, for 10 minutes
       } catch (e) {
-        await sendNotification(
+        await sendMail(
           "FAILED Instance Creation",
           `Instance ${dropletId} was not ready before the timeout was reached.`
         )
@@ -54,7 +55,7 @@ async function sourcePublicationCheck() {
       try {
         setupAndStartInstance(dropletId)
       } catch (e) {
-        await sendNotification(
+        await sendMail(
           "FAILED Instance Setup",
           `Instance ${dropletId} set up and start failed with message: ${(e as any).message}`
         )
@@ -64,29 +65,29 @@ async function sourcePublicationCheck() {
       try {
         await awaitInstanceDeletion(dropletId, 10_000, 900) // check every 10 seconds for 2h30
       } catch (e) {
-        await sendNotification(
+        await sendMail(
           "FAILED Instance Processing",
           `Instance ${dropletId} reached timeout before it finished processing the data (its deletion was not detected).`
         )
         throw e
       }
 
-      await sendNotification(
+      await sendMail(
         "Instance Deleted",
         `Instance ${dropletId} was correctly deleted after processing`
       )
     }
   } catch (error) {
-    await sendNotification("Vivaldi Source Check Error", `Error during source check: ${error}`)
+    await sendMail("Vivaldi Source Check Error", `Error during source check: ${error}`)
     if (dropletId) {
       try {
         await deleteInstance(dropletId)
-        await sendNotification(
+        await sendMail(
           "Instance Deletion",
           `Instance ${dropletId} was correctly deleted after an error occurred.`
         )
       } catch (secondError) {
-        await sendNotification(
+        await sendMail(
           "Vivaldi Source Updater WARNING",
           `Error-handling deletion of instance ${dropletId} produced an error: ${secondError}. You should check whether the instances has been deleted in the Digital Ocean webapp.`
         )
@@ -109,26 +110,29 @@ async function setupAndStartInstance(dropletId: number) {
 
   // Helper function to execute SSH commands
   async function runSSH(command: string) {
-    console.log(`Running command via SSH: ${command}`)
+    console.log(`[SSH]: ${command}`)
 
-    try {
-      await execAsync(`ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${instanceIp} "${command}"`);
-    } catch (error) {
-      throw new Error(`SSH command failed: ${command}, ${(error as any).message}`);
-    }
+    await execAsync(
+      `ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${instanceIp} "${command}"`
+    )
   }
 
   // Install dependencies on the instance
-  await runSSH("apt-get update && apt-get install -y nodejs npm git");
+  await runSSH("apt-get update")
+  await retryAsync(() => runSSH("apt-get install -y nodejs npm git"), 2_000, 5) // Retry up to 5 times with a 2-second delay
 
   // Install Yarn (Berry version)
-  await runSSH("npm install -g corepack && corepack enable && corepack prepare yarn@stable --activate");
+  await runSSH("npm install -g corepack")
+  await runSSH("corepack enable")
+  await runSSH("corepack prepare yarn@stable --activate")
 
   // Clone the updater repository
-  await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`);
+  await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`)
 
   // Navigate to the repository, install dependencies, build, and run the updater
-  await runSSH(`cd updater && yarn install && yarn build && env ${envString} node dist/sourceUpdate.js ${dropletId}`);
+  await runSSH(
+    `cd updater && yarn install && yarn build && env ${envString} node dist/sourceUpdate.js ${dropletId}`
+  )
 }
 
 sourcePublicationCheck()

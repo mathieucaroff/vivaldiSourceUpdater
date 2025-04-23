@@ -11,7 +11,9 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-export async function sendNotification(subject: string, body: string) {
+export async function sendMail(subject: string, body: string) {
+  console.log(`[email] ${subject}: ${body}`)
+
   await transporter.sendMail({
     from: config.smtp.username,
     to: config.smtp.username,

@@ -35,7 +35,7 @@ jobs:
         run: yarn build
 
       # Run your TypeScript script (compiled JavaScript)
-      - name: Run source check
+      - name: Run source publication check
         env:
           DO_API_TOKEN: ${{ secrets.DO_API_TOKEN }}
           DO_SSH_KEY_ID: ${{ vars.DO_SSH_KEY_ID }}

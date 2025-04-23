@@ -37,7 +37,9 @@ export const envString = [
   "SMTP_PASSWORD",
   "GH_TOKEN",
   "GIT_USER_EMAIL",
-].map((name) => {
-  const value = process.env[name]
-  return `${name}='${value}'`
-}).join(" ")
+]
+  .map((name) => {
+    const value = process.env[name]
+    return `${name}='${value}'`
+  })
+  .join(" ")

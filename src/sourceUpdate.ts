@@ -4,7 +4,7 @@ import path from "path"
 import { promisify } from "util"
 import { config } from "./config"
 import { deleteInstance } from "./utils/digitalOcean"
-import { sendNotification } from "./utils/email"
+import { sendMail } from "./utils/email"
 import { GitManager } from "./utils/git"
 import { getNewSourceArchives, getSourceArchives } from "./utils/sourceParser"
 import { getLastRepositoryVersion } from "./utils/github"
@@ -13,7 +13,7 @@ const execAsync = promisify(exec)
 
 async function sourceUpdate() {
   try {
-    await sendNotification(
+    await sendMail(
       "Vivaldi Source Update Started",
       "Starting update of the repository using the website source code"
     )
@@ -52,7 +52,7 @@ async function sourceUpdate() {
       // Push changes
       await git.push()
 
-      await sendNotification("Vivaldi Source Update Progress", `Vivaldi archive ${archive.version} has been added and pushed`)
+      await sendMail("Vivaldi Source Update Progress", `Vivaldi archive ${archive.version} has been added and pushed`)
     }
 
     const thisInstanceId = Number(process.argv[2])
@@ -63,7 +63,7 @@ async function sourceUpdate() {
     // Delete this instance
     await deleteInstance(thisInstanceId)
   } catch (error) {
-    await sendNotification("Vivaldi Source Update Error", `Error during source update: ${error}`)
+    await sendMail("Vivaldi Source Update Error", `Error during source update: ${error}`)
   }
 }
 
