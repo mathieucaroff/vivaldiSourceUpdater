@@ -117,6 +117,8 @@ async function setupAndStartInstance(dropletId: number) {
     )
   }
 
+  console.log(`Using SSH:\n    ssh root@${instanceIp}`)
+
   // Install dependencies on the instance
   await runSSH("apt-get update")
   await retryAsync(() => runSSH("apt-get install -y nodejs npm git"), 2_000, 5) // Retry up to 5 times with a 2-second delay
@@ -130,13 +132,8 @@ async function setupAndStartInstance(dropletId: number) {
   await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`)
 
   // Navigate to the repository, install dependencies, build, and run the updater
-  // console.log(
-  //   `Exiting before running via SSH:\n` +
-  //     `cd updater && env ${envString} node dist/sourceUpdate.js ${dropletId}\n` +
-  //     `(ssh root@${instanceIp})`
-  // )
-  // process.exit()
-  await runSSH(`cd updater && yarn install && yarn build`)
+  await runSSH(`cd updater && yarn install`)
+  await runSSH(`cd updater && yarn build`)
   await runSSH(`cd updater && env ${envString} node dist/sourceUpdate.js ${dropletId}`)
 }
 
