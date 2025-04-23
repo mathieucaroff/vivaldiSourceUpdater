@@ -6,7 +6,7 @@ export const config = {
     apiToken: process.env.DO_API_TOKEN!,
     // ID or fingerprint
     sshKeyId: process.env.DO_SSH_KEY_ID!,
-    sshPrivateKey: process.env.SSH_PRIVATE_KEY!,
+    sshPrivateKey: process.env.SSH_PRIVATE_KEY!.replace(/;/g, "\n"),
   },
   smtp: {
     server: process.env.SMTP_SERVER!,
@@ -39,7 +39,10 @@ export const envString = [
   "GIT_USER_EMAIL",
 ]
   .map((name) => {
-    const value = process.env[name]
+    let value = process.env[name] || ""
+    if (name === "SSH_PRIVATE_KEY") {
+      value = value.replace(/\n/g, ";")
+    }
     return `${name}='${value}'`
   })
   .join(" ")

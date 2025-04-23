@@ -130,9 +130,14 @@ async function setupAndStartInstance(dropletId: number) {
   await runSSH(`git clone https://github.com/${config.github.updaterRepository}.git updater`)
 
   // Navigate to the repository, install dependencies, build, and run the updater
-  await runSSH(
-    `cd updater && yarn install && yarn build && env ${envString} node dist/sourceUpdate.js ${dropletId}`
-  )
+  // console.log(
+  //   `Exiting before running via SSH:\n` +
+  //     `cd updater && env ${envString} node dist/sourceUpdate.js ${dropletId}\n` +
+  //     `(ssh root@${instanceIp})`
+  // )
+  // process.exit()
+  await runSSH(`cd updater && yarn install && yarn build`)
+  await runSSH(`cd updater && env ${envString} node dist/sourceUpdate.js ${dropletId}`)
 }
 
 sourcePublicationCheck()
