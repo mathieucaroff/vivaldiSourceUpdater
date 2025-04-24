@@ -53,7 +53,7 @@ async function sourcePublicationCheck() {
       }
 
       try {
-        setupAndStartInstance(dropletId)
+        await setupAndStartInstance(dropletId)
       } catch (e) {
         await sendMail(
           "FAILED Instance Setup",
@@ -112,16 +112,19 @@ async function setupAndStartInstance(dropletId: number) {
   async function runSSH(command: string) {
     console.log(`[SSH]: ${command}`)
 
+    let now = Date.now()
     await execAsync(
       `ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 root@${instanceIp} "${command}"`
     )
+    const elapsed = Date.now() - now
+    console.log(`Command took ${elapsed}ms`)
   }
 
   console.log(`Using SSH:\n    ssh root@${instanceIp}`)
 
   // Install dependencies on the instance
   await runSSH("apt-get update")
-  await retryAsync(() => runSSH("apt-get install -y nodejs npm git"), 2_000, 5) // Retry up to 5 times with a 2-second delay
+  await retryAsync(() => runSSH("apt-get install -y nodejs npm git"), 2_000, 10) // Retry up to 5 times with a 2-second delay
 
   // Install Yarn (Berry version)
   await runSSH("npm install -g corepack")
