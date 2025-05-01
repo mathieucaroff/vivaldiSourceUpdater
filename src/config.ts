@@ -3,26 +3,26 @@ dotenv.config()
 
 export const config = {
   digitalOcean: {
-    apiToken: process.env.DO_API_TOKEN!,
+    apiToken: process.env.DO_API_TOKEN ?? "",
     // ID or fingerprint
-    sshKeyId: process.env.DO_SSH_KEY_ID!,
-    sshPrivateKey: process.env.SSH_PRIVATE_KEY!.replace(/;/g, "\n"),
+    sshKeyId: process.env.DO_SSH_KEY_ID ?? "",
+    sshPrivateKey: (process.env.SSH_PRIVATE_KEY ?? "").replace(/;/g, "\n"),
   },
   smtp: {
-    server: process.env.SMTP_SERVER!,
+    server: process.env.SMTP_SERVER ?? "",
     port: Number(process.env.SMTP_PORT!),
-    username: process.env.SMTP_USERNAME!,
-    password: process.env.SMTP_PASSWORD!,
+    username: process.env.SMTP_USERNAME ?? "",
+    password: process.env.SMTP_PASSWORD ?? "",
   },
   github: {
     vivaldiRepository: "ric2b/Vivaldi-browser",
     updaterRepository: "mathieucaroff/vivaldiSourceUpdater",
-    token: process.env.GH_TOKEN!,
+    token: process.env.GH_TOKEN ?? "",
   },
   git: {
     user: {
       name: "Mathieu CAROFF",
-      email: process.env.GIT_USER_EMAIL!,
+      email: process.env.GIT_USER_EMAIL ?? "",
     },
   },
 }
